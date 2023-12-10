@@ -1,0 +1,132 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
+type Direction struct {
+	x int
+	y int
+}
+
+// type Pipe struct {
+// 	char rune
+// 	start Direction
+// 	end Direction
+// }
+
+func readLines(path string, sep string) []string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return strings.Split(string(data), sep)
+}
+
+var NORTH = Direction{
+	x: 0,
+	y: -1,
+}
+var SOUTH = Direction{
+	x: 0,
+	y: 1,
+}
+var EAST = Direction{
+	x: 1,
+	y: 0,
+}
+var WEST = Direction{
+	x: -1,
+	y: 0,
+}
+
+type Position struct {
+	r int
+	c int
+}
+
+
+
+func getFarthestTile(point Position, visited *map[[2]int]bool, grid []string) {
+	if point.r < 0 || point.r >= len(grid) || point.c < 0 || point.c >= len(grid[0]) || (*visited)[[2]int{point.r, point.c}] {
+        return
+    }
+	
+	char := string(grid[point.r][point.c])
+	(*visited)[[2]int{point.r,point.c}] = true
+
+
+	// North
+	if point.r > 0 && strings.Contains("S|JL", char)   {
+		top := grid[point.r + NORTH.y][point.c]
+
+		if strings.Contains("|7F", string(top)) {
+			getFarthestTile(Position{
+				r: point.r + NORTH.y,
+				c: point.c + NORTH.x,
+			}, visited, grid)
+		}
+	}
+
+	// South
+	if point.r < len(grid) - 1 && strings.Contains("S|7F", char) {
+		bottom := grid[point.r + SOUTH.y][point.c + SOUTH.x]
+
+		if strings.Contains("|JL", string(bottom)) {
+			getFarthestTile(Position{
+				r: point.r + SOUTH.y,
+				c: point.c + SOUTH.x,
+			}, visited, grid)
+		}
+	}
+
+	// West
+	if point.c > 0 && strings.Contains("S-J7", char) {
+		left := grid[point.r + WEST.y][point.c + WEST.x]
+
+		if strings.Contains("-LF", string(left)) {
+			getFarthestTile(Position{
+				r: point.r + WEST.y,
+				c: point.c + WEST.x,
+			}, visited, grid)
+		}
+	}
+
+	// East
+	if point.c < len(grid[point.r]) - 1 && strings.Contains("S-LF", char) {
+		right := grid[point.r + EAST.y][point.c + EAST.x]
+
+		if strings.Contains("-J7", string(right)) {
+			getFarthestTile(Position{
+				r: point.r + EAST.y,
+				c: point.c + EAST.x,
+			}, visited, grid)
+		}
+	}
+}
+
+func main()  {
+	lines := readLines("./test-3.txt", "\n")
+	start := Position{}
+	for r, line := range lines {
+		for c, char := range line {
+			if char == 'S' {
+				start.r = r
+				start.c = c
+			}
+		}
+	}
+
+	visited := make(map[[2]int]bool)
+
+	getFarthestTile(Position{
+		r: start.r,
+		c: start.c,
+	}, &visited, lines)
+
+	fmt.Println(len(visited) / 2)
+}
+
