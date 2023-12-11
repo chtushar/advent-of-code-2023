@@ -11,12 +11,6 @@ type Direction struct {
 	y int
 }
 
-// type Pipe struct {
-// 	char rune
-// 	start Direction
-// 	end Direction
-// }
-
 func readLines(path string, sep string) []string {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -108,8 +102,22 @@ func getFarthestTile(point Position, visited *map[[2]int]bool, grid []string) {
 	}
 }
 
+func raycastWest(lines []string, visited map[[2]int]bool, r, c int) int {
+	intersections := 0
+	for i, ch := range lines[r] {
+		if i < c {
+			if visited[[2]int{r,i}] && strings.Contains("JL|", string(ch)) {
+				intersections++
+			}
+		} else {
+			break
+		}
+	}
+	return intersections
+}
+
 func main()  {
-	lines := readLines("./test-3.txt", "\n")
+	lines := readLines("./input.txt", "\n")
 	start := Position{}
 	for r, line := range lines {
 		for c, char := range line {
@@ -128,5 +136,22 @@ func main()  {
 	}, &visited, lines)
 
 	fmt.Println(len(visited) / 2)
+
+	visited[[2]int{start.r, start.c}] = true
+
+	lines[start.r] = strings.Replace(lines[start.r], "S", "J", -1) // Hardcoded for the given input
+
+	count := 0
+	for r, line := range lines {
+		for c, _ := range line {
+			if !visited[[2]int{r,c}] {
+				intersect := raycastWest(lines, visited, r, c)
+				if intersect % 2 == 1 {
+					count += 1		
+				}
+			}
+		}
+	}
+	fmt.Println(count)
 }
 
